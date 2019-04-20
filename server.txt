@@ -1,0 +1,148 @@
+var express = require('express');
+var path = require('path');
+var favicon = require('serve-favicon');
+var logger = require('morgan');
+var fs = require('fs');
+const cors = require('cors');
+var cookieParser = require('cookie-parser');
+var bodyParser = require('body-parser');
+var util = require('util');
+var cons = require('consolidate');
+var crypto = require('crypto');
+var app = express();
+
+var mysql = require('mysql');
+
+var con = mysql.createConnection({
+  host: "localhost",
+  user: "root",
+  password: "",
+  database: "mydb"
+});
+
+con.connect(function(err) {
+	if (err) throw err;
+	console.log("Connected!");
+});
+
+
+
+
+
+app.use(bodyParser.json());  // to support JSON-encoded bodies	  
+app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
+  extended: true
+}));
+
+app.use(express.static(path.join(__dirname, './public/dist/trai')));
+app.use(cookieParser());
+
+
+
+app.use(function(req,res,next) {
+	res.setHeader('Access-Control-Allow-Origin','*');
+	res.setHeader('Access-Control-Allow-Methods','POST');
+	res.setHeader('Access-Control-Allow-Headers','X-Requested-With,content-type');
+	res.setHeader('Access-Control-Allow-Credentials',true);
+	next();
+}); 
+
+app.use(cors());
+
+
+app.get('/logs', function (request, response){ 
+    fs.readFile('logs/app.log', function(err, data) {
+        response.writeHead(200, {'Content-Type': 'text/log'});
+        response.write(data);
+        response.end();  
+    });
+});
+/*
+app.get('/query/GetSubscriberAndPreferenceDetails/:arg1/:arg2',function(req,res){
+    route.queryGetSubscriberAndPreferenceDetails(req,res);
+})
+
+app.get('/query/GetPreferenceFlag/:arg1',function(req,res){
+    route.queryGetPreferenceFlag(req,res);
+})
+
+app.post('/invoke',function(request,reply){
+    console.log("INSIDE INVOKE");
+	route.invoke(request,reply);
+})
+
+*/
+
+app.get('/', (req, res) => {
+    res.json({
+        message: 'welcome to our api!',
+    })
+})
+
+app.post('/addUser', (req, res) => {
+	let response = req.body;
+	console.log(response,"**********")
+	let randomId = Math.ceil(Math.random()*100000);	
+	
+	  var sql = "INSERT INTO `user_table`(`id`, `firstname`,`lastname`,`address1`,`address2`,`district`,`state`,`phone`) VALUES ( "+randomId+",'"+ response.firstName+"','"+response.lastName+"','"+response.address1+"','"+response.address2+"','"+response.district+"','"+response.state+"','"+response.contactnumber+"')";
+	  con.query(sql, function (err, result) {
+		if (err) {
+			res.json({
+				status: false,
+			})		
+			throw err;
+			
+		}else{			
+			console.log("1 record inserted");
+			res.json({
+				status: true,
+			})
+		}
+	  }); 	
+});
+
+app.get('/getAllUser', (req, res) => {
+	var sql = "select * from `user_table`";
+	con.query(sql, function (err, result) {
+		if (err) {
+			res.json({
+				status: false,
+			})		
+			throw err;
+			
+		}else{			
+			res.json({
+				"result":result
+			 });
+		}
+
+	})
+});
+
+/*app.post('/searchUser', (req, res) => {
+	let response = req.body;
+	let randomId = Math.ceil(Math.random()*100000);		
+	  var sql = "INSERT INTO `user_table`(`id`, `firstname`,`lastname`,`email`,`phone`) VALUES ( "+randomId+",'"+ response.firstName+"','"+response.lastName+"','"+response.email+"','"+response.contactnumber+"')";
+	  con.query(sql, function (err, result) {
+		if (err) throw err;
+		console.log("1 record inserted");
+	  }); 
+	
+	res.json({
+        message: String(req.body),
+    })
+});
+*/
+
+
+
+
+app.set('port', process.env.PORT || 4201);
+
+var server = app.listen(app.get('port'), function() {
+
+  console.log('Express server listening on port ' + server.address().port);
+
+});
+
+module.exports = app;
