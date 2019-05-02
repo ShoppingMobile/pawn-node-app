@@ -79,6 +79,11 @@ app.get('/', (req, res) => {
     })
 })
 
+
+/**************************/
+/*** User API Request's ***/
+/**************************/
+
 app.post('/addUser', (req, res) => {
 	let response = req.body;
 	console.log(response,"**********")
@@ -100,6 +105,50 @@ app.post('/addUser', (req, res) => {
 		}
 	  }); 	
 });
+app.post('/getUser', (req, res) => {
+	let response = req.body;
+	console.log(response)
+	var sql = "select * from `user_table` WHERE `id`="+response.id;
+
+	con.query(sql, function (err, result) {
+		if (err) {
+			res.json({
+				status: false,
+			})		
+			throw err;
+			
+		}else{			
+			res.json({
+				"result":result
+			 });
+		}
+	})
+});
+
+app.put('/editUser', (req, res) => {
+	let response = req.body.data;
+	console.log(req.body.userId);
+	console.log(response,"**********")
+	
+	
+	  var sql = "UPDATE `user_table` SET firstname='"+ response.firstname+"', lastname ='"+response.lastname+"', address2='"+response.address2+"', address1='"+response.address1+"', phone="+response.phone+" WHERE id= "+req.body.userId;
+	  console.log(sql);
+	  con.query(sql, function (err, result) {
+		if (err) {
+			res.json({
+				status: false,
+			})		
+			throw err;
+			
+		}else{					
+			res.json({					
+				status: true
+			})	
+		}
+	  }); 	
+});
+
+
 
 app.get('/getAllUser', (req, res) => {
 	var sql = "select * from `user_table`";
@@ -118,6 +167,157 @@ app.get('/getAllUser', (req, res) => {
 
 	})
 });
+
+
+
+/**************************/
+/*** Particular API Request's ***/
+/**************************/
+
+
+app.post('/addParticular', (req, res) => {
+	let response = req.body;
+	console.log(response,"**********")
+	let randomId = Math.ceil(Math.random()*100000);	
+	
+	  var sql = "INSERT INTO `particular_table`(`particular_id`, `particular_name`,`user_id`,`amount`,`status`,`date`) VALUES ( "+response.particular_id+",'"+ response.particular_name+"','"+response.user_id+"','"+response.amount+"','"+response.status+"','"+response.date+"')";
+	  con.query(sql, function (err, result) {
+		if (err) {
+			res.json({
+				status: false,
+			})		
+			throw err;
+			
+		}else{			
+			var getParticularsql = "select * from `particular_table` WHERE `user_id`="+response.user_id;			
+			con.query(getParticularsql, function (err, result) {
+				res.json({					
+					status: true,
+					"result":result
+				})
+			});	
+		}
+	  }); 	
+});
+
+app.put('/editParticular', (req, res) => {
+	let response = req.body.data;
+	console.log(req.body.particularId);
+	console.log(response,"**********")
+	let randomId = Math.ceil(Math.random()*100000);	
+	
+	  var sql = "UPDATE `particular_table` SET particular_name='"+ response.particular_name+"', amount ="+response.amount+",status='"+response.status+"', date='"+response.date+"' WHERE particular_id= "+req.body.particularId;
+	  con.query(sql, function (err, result) {
+		if (err) {
+			res.json({
+				status: false,
+			})		
+			throw err;
+			
+		}else{					
+			res.json({					
+				status: true
+			})	
+		}
+	  }); 	
+});
+
+
+app.post('/getAllParticularUser', (req, res) => {
+	let response = req.body;
+	console.log(response)
+	var sql = "select * from `particular_table` WHERE `user_id`="+response.id;
+	
+	con.query(sql, function (err, result) {
+		if (err) {
+			res.json({
+				status: false,
+			})		
+			throw err;
+			
+		}else{			
+			res.json({
+				"result":result
+			 });
+		}
+	})
+});
+
+app.post('/getSingleParticular', (req, res) => {
+	let response = req.body;
+	console.log(response)
+	
+	var sql = "select * from `particular_table` WHERE `particular_id`= "+req.body.particularId;
+	
+	con.query(sql, function (err, result) {
+		if (err) {
+			res.json({
+				status: false,
+			})		
+			throw err;
+			
+		}else{			
+			res.json({
+				"result":result
+			 });
+		}
+	})
+});
+
+
+app.get('/getAllParticularAllUser', (req, res) => {	
+	var sql = `SELECT
+    particular_table.particular_id,
+    particular_table.particular_name,
+    particular_table.amount,
+    particular_table.status,
+    particular_table.user_id,
+    particular_table.date,
+    user_table.firstname,
+	user_table.address2
+FROM
+    particular_table
+INNER JOIN user_table ON particular_table.user_id = user_table.id`;
+	
+	con.query(sql, function (err, result) {
+		if (err) {
+			res.json({
+				status: false,
+			})		
+			throw err;
+			
+		}else{			
+			res.json({
+				"result":result
+			 });
+		}
+	});	
+	
+});
+
+
+app.get('/searchUserId', (req, res) => {	
+	var sql = `SELECT user_table.id, user_table.firstname, user_table.address2 FROM user_table`;
+	con.query(sql, function (err, result) {
+		if (err) {
+			res.json({
+				status: false,
+			})		
+			throw err;
+		}else{			
+			res.json({
+				"result":result
+			 });
+		}
+	});	
+	
+});
+
+
+
+
+
+
 
 /*app.post('/searchUser', (req, res) => {
 	let response = req.body;
